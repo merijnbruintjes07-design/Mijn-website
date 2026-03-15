@@ -1,38 +1,219 @@
 <!DOCTYPE html>
-<html>
-<head>
-  <title>Mijn Localhost Site</title>
-</head>
-<body>
+<html lang="nl">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>SLO Kerndoel 57</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <main class="page">
+      <section id="kerndoel57" class="leerlijnen-section">
+        <div class="tabs">
+          <button class="tab-button active" data-tab="groepen">Groepen</button>
+          <button class="tab-button" data-tab="leerlijnen">
+            Leerlijnen <span class="tab-count">(12)</span>
+          </button>
+        </div>
 
-<h1>Mijn Website</h1>
+        <div class="tab-content active" data-tab-content="groepen">
+          <div class="groups-view active" id="groepen-overview-view">
+            <div class="groepen-card">
+              <header class="groepen-header">
+                <h1>Jouw Groepen</h1>
+                <p>Voeg hier groepen toe voor je lessen.</p>
+              </header>
 
-<input id="command" placeholder="Typ een opdracht">
-<button onclick="runCommand()">Voer uit</button>
+              <form class="groepen-form" onsubmit="return voegGroepToe(event)">
+                <input
+                  id="groep-naam"
+                  type="text"
+                  placeholder="Naam groep..."
+                  autocomplete="off"
+                />
+                <button type="submit" class="btn-primary">Toevoegen</button>
+              </form>
 
-<p id="output"></p>
+              <ul class="groepen-list" id="groepen-lijst"></ul>
+            </div>
+          </div>
 
-<script>
-function runCommand() {
-  let cmd = document.getElementById("command").value;
+          <div class="groups-view" id="groep-detail-view">
+            <div class="groepen-card">
+              <header class="groep-detail-header">
+                <button
+                  type="button"
+                  class="back-button"
+                  onclick="gaTerugNaarGroepenOverzicht()"
+                >
+                  ← Terug
+                </button>
+                <h1 id="groep-detail-titel">Groep</h1>
+              </header>
 
-  if (cmd === "maak rood") {
-    document.body.style.backgroundColor = "red";
-  }
+              <p class="groep-detail-subtitle">
+                Voeg leerlingen toe en klik op een leerling om verder te gaan
+                naar leerlijnen.
+              </p>
 
-  else if (cmd === "maak blauw") {
-    document.body.style.backgroundColor = "blue";
-  }
+              <form class="leerlingen-form" onsubmit="return voegLeerlingToe(event)">
+                <input
+                  id="leerling-naam"
+                  type="text"
+                  placeholder="Naam leerling..."
+                  autocomplete="off"
+                />
+                <button type="submit" class="btn-primary">Toevoegen</button>
+              </form>
 
-  else if (cmd === "hallo") {
-    document.getElementById("output").innerText = "Hallo daar!";
-  }
+              <ul class="leerlingen-list" id="leerlingen-lijst"></ul>
+            </div>
+          </div>
+        </div>
 
-  else {
-    document.getElementById("output").innerText = "Opdracht niet herkend";
-  }
-}
-</script>
+        <div class="tab-content" data-tab-content="leerlijnen">
+          <div class="leerlijnen-card">
+            <header class="leerlijnen-header">
+              <h2>De 12 leerlijnen</h2>
+              <div class="leerling-tabs" id="leerling-tabs"></div>
+              <p>De 12 leerlijnen voor bewegingsonderwijs in één overzicht.</p>
+              <p class="selectie-context" id="selectie-context">
+                Geen leerling geselecteerd.
+              </p>
+            </header>
 
-</body>
+            <div class="leerlijnen-search-row">
+              <input
+                id="leerlijn-zoek"
+                type="text"
+                placeholder="Naam leerlijn..."
+                oninput="filterLeerlijnen()"
+              />
+              <button type="button" class="btn-primary btn-small" disabled>
+                Toevoegen
+              </button>
+            </div>
+
+            <ul class="leerlijnen-list" id="leerlijnen-lijst">
+              <li class="leerlijn-item">
+                <span class="leerlijn-naam">Balanceren</span>
+                <span class="leerlijn-count"></span>
+              </li>
+              <li class="leerlijn-item">
+                <span class="leerlijn-naam">Klimmen</span>
+                <span class="leerlijn-count"></span>
+              </li>
+              <li class="leerlijn-item">
+                <span class="leerlijn-naam">Zwaaien</span>
+                <span class="leerlijn-count"></span>
+              </li>
+              <li class="leerlijn-item">
+                <span class="leerlijn-naam">Over de kop gaan</span>
+                <span class="leerlijn-count"></span>
+              </li>
+              <li class="leerlijn-item">
+                <span class="leerlijn-naam">Springen</span>
+                <span class="leerlijn-count"></span>
+              </li>
+              <li class="leerlijn-item">
+                <span class="leerlijn-naam">Hardlopen</span>
+                <span class="leerlijn-count"></span>
+              </li>
+              <li class="leerlijn-item">
+                <span class="leerlijn-naam">Mikken</span>
+                <span class="leerlijn-count"></span>
+              </li>
+              <li class="leerlijn-item">
+                <span class="leerlijn-naam">Jongleren</span>
+                <span class="leerlijn-count"></span>
+              </li>
+              <li class="leerlijn-item">
+                <span class="leerlijn-naam">Doelspelen</span>
+                <span class="leerlijn-count"></span>
+              </li>
+              <li class="leerlijn-item">
+                <span class="leerlijn-naam">Tikspelen</span>
+                <span class="leerlijn-count"></span>
+              </li>
+              <li class="leerlijn-item">
+                <span class="leerlijn-naam">Stoeispelen</span>
+                <span class="leerlijn-count"></span>
+              </li>
+              <li class="leerlijn-item">
+                <span class="leerlijn-naam">Bewegen op muziek</span>
+                <span class="leerlijn-count"></span>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <div class="overlay" id="oefeningen-overlay">
+      <div class="overlay-backdrop"></div>
+      <aside class="overlay-panel">
+        <header class="overlay-header">
+          <h2 id="overlay-titel">Leerlijn</h2>
+          <button
+            type="button"
+            class="overlay-close"
+            aria-label="Sluit oefeningen"
+          >
+            ×
+          </button>
+        </header>
+
+        <form class="oefeningen-form" onsubmit="return voegOefeningToe(event)">
+          <input
+            id="oefening-tekst"
+            type="text"
+            placeholder="Naam oefening..."
+            autocomplete="off"
+          />
+          <button type="submit" class="btn-primary">
+            Toevoegen
+          </button>
+        </form>
+
+        <ul class="oefeningen-list" id="oefeningen-lijst"></ul>
+
+        <div class="niveaus-panel">
+          <div class="toekenning-info" id="toekenning-info">
+            Selecteer een leerling en niveau om een resultaat toe te kennen.
+          </div>
+          <div class="niveaus-empty" id="niveaus-empty">
+            Kies eerst een oefening om niveaus toe te voegen.
+          </div>
+
+          <div class="niveaus-content" id="niveaus-content">
+            <header class="niveaus-header">
+              <h3>
+                Niveaus voor:
+                <span id="niveaus-oefening-naam"></span>
+              </h3>
+            </header>
+
+            <form
+              class="niveaus-form"
+              onsubmit="return voegNiveauToe(event)"
+            >
+              <input
+                id="niveau-tekst"
+                type="text"
+                placeholder="Beschrijving van niveau..."
+                autocomplete="off"
+              />
+              <button type="submit" class="btn-primary">
+                Niveau toevoegen
+              </button>
+            </form>
+
+            <ul class="niveaus-list" id="niveaus-lijst"></ul>
+          </div>
+        </div>
+      </aside>
+    </div>
+
+    <script src="script.js"></script>
+  </body>
 </html>
