@@ -14,7 +14,7 @@ body {
 }
 
 body.groups-bg {
-  background-image: url("file:///C:/Users/merij/.cursor/projects/c-Users-merij-OneDrive-Documents-Mijn-website/assets/c__Users_merij_AppData_Roaming_Cursor_User_workspaceStorage_01853a916f5ee800c1218f59771c9b8f_images_bomen_achtergrond-1f067b97-24c3-40f5-a22c-5427e1e4a532.png");
+  background-image: url("./c__Users_merij_AppData_Roaming_Cursor_User_workspaceStorage_01853a916f5ee800c1218f59771c9b8f_images_bomen_achtergrond-1f067b97-24c3-40f5-a22c-5427e1e4a532.png");
   background-size: cover;
   background-position: center;
   background-attachment: scroll;
@@ -26,7 +26,7 @@ body.groups-bg .tabs {
 }
 
 body.leerlijnen-bg {
-  background-image: url("file:///C:/Users/merij/.cursor/projects/c-Users-merij-OneDrive-Documents-Mijn-website/assets/c__Users_merij_AppData_Roaming_Cursor_User_workspaceStorage_01853a916f5ee800c1218f59771c9b8f_images_image-20672a87-d316-40ea-817f-e14eb65f6dcb.png");
+  background-image: url("./c__Users_merij_AppData_Roaming_Cursor_User_workspaceStorage_01853a916f5ee800c1218f59771c9b8f_images_image-20672a87-d316-40ea-817f-e14eb65f6dcb.png");
   background-size: cover;
   background-position: center;
   background-attachment: fixed;
