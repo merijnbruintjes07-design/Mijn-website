@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Mijn Localhost Site</title>
+</head>
+<body>
+
+<h1>Mijn Website</h1>
+
+<input id="command" placeholder="Typ een opdracht">
+<button onclick="runCommand()">Voer uit</button>
+
+<p id="output"></p>
+
+<script>
+function runCommand() {
+  let cmd = document.getElementById("command").value;
+
+  if (cmd === "maak rood") {
+    document.body.style.backgroundColor = "red";
+  }
+
+  else if (cmd === "maak blauw") {
+    document.body.style.backgroundColor = "blue";
+  }
+
+  else if (cmd === "hallo") {
+    document.getElementById("output").innerText = "Hallo daar!";
+  }
+
+  else {
+    document.getElementById("output").innerText = "Opdracht niet herkend";
+  }
+}
+</script>
+
+</body>
+</html>
