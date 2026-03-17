@@ -10,6 +10,38 @@ let geselecteerdeLeerlijn = null;
 let geselecteerdeOefeningIndex = null;
 let actieveTab = "groepen";
 let actieveGroepenView = "overview";
+const SECTIE_PROFIELEN = [
+  {
+    naam: "Sectie 1 - Acrobatische gymnastiek",
+    leerlijnen: ["Balanceren", "Springen", "Over de kop gaan"],
+    sporten: ["Turnen", "Acrogym", "Trampolinespringen", "Kunstrijden", "Freerunning"],
+  },
+  {
+    naam: "Sectie 2 - Boulderen en klimmen",
+    leerlijnen: ["Klimmen", "Stoeispelen"],
+    sporten: ["Klimmen", "Boulderen", "Turnen", "Obstakelruns", "Crossfit"],
+  },
+  {
+    naam: "Sectie 3 - Atletiek",
+    leerlijnen: ["Hardlopen", "Tikspelen"],
+    sporten: ["Atletiek", "Voetbal", "Hockey", "Volleybal", "Handbal", "Rugby"],
+  },
+  {
+    naam: "Sectie 4 - Mikken, jongleren en doelspelen",
+    leerlijnen: ["Mikken", "Jongleren", "Doelspelen"],
+    sporten: ["Basketbal", "Korfbal", "Honkbal", "Tennis", "Badminton", "Boogschieten", "Tafeltennis"],
+  },
+  {
+    naam: "Sectie 5 - Dans en demo",
+    leerlijnen: ["Doelspelen", "Bewegen op muziek"],
+    sporten: ["Streetdance", "Cheerleading", "Ritmische gymnastiek", "Kunstrijden"],
+  },
+  {
+    naam: "Sectie 6 - Vechtsporten",
+    leerlijnen: ["Stoeispelen", "Balanceren"],
+    sporten: ["Judo", "Jiujitsu", "Worstelen", "Karate", "Taekwondo", "Boksen", "Kickboksen"],
+  },
+];
 
 function saveState() {
   const data = {
@@ -358,6 +390,11 @@ function escapeHtml(value) {
     .replaceAll("'", "&#039;");
 }
 
+function formatSportenLijst(sporten) {
+  if (!Array.isArray(sporten) || sporten.length === 0) return "-";
+  return sporten.join(", ");
+}
+
 function getGekozenNiveau(leerlingId, leerlijnNaam, oefeningNaam) {
   const entry = resultatenPerLeerling[leerlingId]?.[leerlijnNaam]?.[oefeningNaam];
   if (typeof entry === "number") return entry;
@@ -402,36 +439,133 @@ function openLeerlingRapport(leerlingId) {
   }
 
   const leerlijnNamen = Object.keys(regelsPerLeerlijn);
+  const conclusieHtml =
+    leerlijnNamen.length === 0
+      ? ""
+      : (() => {
+          const leerlijnSamenvatting = leerlijnNamen
+            .map((leerlijnNaam) => {
+              const regels = regelsPerLeerlijn[leerlijnNaam] || [];
+              const totaal = regels.reduce((som, regel) => som + regel.gekozenNiveau, 0);
+              const gemiddelde = totaal / regels.length;
+              return {
+                leerlijnNaam,
+                gemiddelde,
+                aantal: regels.length,
+              };
+            })
+            .sort((a, b) => b.gemiddelde - a.gemiddelde);
+
+          const besteLeerlijn = leerlijnSamenvatting[0];
+          const gelijkeBesteLeerlijnen = leerlijnSamenvatting.filter(
+            (item) => Math.abs(item.gemiddelde - besteLeerlijn.gemiddelde) < 0.001
+          );
+          const besteLeerlijnNamen = gelijkeBesteLeerlijnen
+            .map((item) => item.leerlijnNaam)
+            .join(", ");
+          const besteLeerlijnNiveau = besteLeerlijn.gemiddelde.toFixed(1).replace(".", ",");
+
+          const leerlijnGemiddelden = {};
+          leerlijnSamenvatting.forEach((item) => {
+            leerlijnGemiddelden[item.leerlijnNaam] = item.gemiddelde;
+          });
+
+          const sectieSamenvatting = SECTIE_PROFIELEN.map((sectie) => {
+            const scores = sectie.leerlijnen
+              .map((naam) => leerlijnGemiddelden[naam])
+              .filter((score) => typeof score === "number");
+            if (scores.length === 0) {
+              return null;
+            }
+            const gemiddelde = scores.reduce((som, score) => som + score, 0) / scores.length;
+            return {
+              naam: sectie.naam,
+              gemiddelde,
+              sporten: sectie.sporten,
+            };
+          })
+            .filter(Boolean)
+            .sort((a, b) => b.gemiddelde - a.gemiddelde);
+
+          let sectieZin = "";
+          if (sectieSamenvatting.length > 0) {
+            const besteSectie = sectieSamenvatting[0];
+            const slechtsteSectie = sectieSamenvatting[sectieSamenvatting.length - 1];
+            const gelijkeBesteSecties = sectieSamenvatting.filter(
+              (item) => Math.abs(item.gemiddelde - besteSectie.gemiddelde) < 0.001
+            );
+            const gelijkeSlechtsteSecties = sectieSamenvatting.filter(
+              (item) => Math.abs(item.gemiddelde - slechtsteSectie.gemiddelde) < 0.001
+            );
+            const besteSectieNamen = gelijkeBesteSecties.map((item) => item.naam).join(", ");
+            const slechtsteSectieNamen = gelijkeSlechtsteSecties
+              .map((item) => item.naam)
+              .join(", ");
+            const besteSectieSporten = gelijkeBesteSecties
+              .map((item) => `${item.naam}: ${formatSportenLijst(item.sporten)}`)
+              .join(" | ");
+            const slechtsteSectieSporten = gelijkeSlechtsteSecties
+              .map((item) => `${item.naam}: ${formatSportenLijst(item.sporten)}`)
+              .join(" | ");
+
+            sectieZin = `
+              <p>
+                Op basis van de gekoppelde secties scoort ${escapeHtml(leerling.naam)} het beste in
+                <strong>${escapeHtml(besteSectieNamen)}</strong> en het minst sterk in
+                <strong>${escapeHtml(slechtsteSectieNamen)}</strong>.
+              </p>
+              <p>
+                Sporten bij de beste sectie(s): ${escapeHtml(besteSectieSporten)}.
+              </p>
+              <p>
+                Sporten bij de minst sterke sectie(s): ${escapeHtml(slechtsteSectieSporten)}.
+              </p>
+            `;
+          }
+
+          return `
+            <section class="conclusie-blok">
+              <h2>Kleine conclusie</h2>
+              <p>
+                ${escapeHtml(leerling.naam)} scoort op dit moment het sterkst in:
+                <strong>${escapeHtml(besteLeerlijnNamen)}</strong>
+                (gemiddeld niveau ${escapeHtml(besteLeerlijnNiveau)}).
+              </p>
+              ${sectieZin}
+            </section>
+          `;
+        })();
   const rapportBodyHtml =
     leerlijnNamen.length === 0
       ? `<p>Nog geen scores ingevuld voor deze leerling.</p>`
       : leerlijnNamen
-          .map((leerlijnNaam) => {
+          .map((leerlijnNaam, index) => {
             const rows = regelsPerLeerlijn[leerlijnNaam]
               .map(
                 (regel) => `
-                  <tr>
-                    <td>${escapeHtml(regel.oefeningNaam)}</td>
-                    <td>Niveau ${escapeHtml(regel.gekozenNiveau)}</td>
-                    <td>${escapeHtml(regel.niveauTekst)}</td>
-                  </tr>
+                  <article class="rapport-row">
+                    <div class="rapport-row-head">
+                      <h3>${escapeHtml(regel.oefeningNaam)}</h3>
+                      <span class="niveau-label">Niveau ${escapeHtml(regel.gekozenNiveau)}</span>
+                    </div>
+                    <div class="niveau-dots" aria-label="Niveau ${escapeHtml(regel.gekozenNiveau)} van 5">
+                      <span class="dot ${regel.gekozenNiveau === 1 ? "active" : ""}">1</span>
+                      <span class="dot ${regel.gekozenNiveau === 2 ? "active" : ""}">2</span>
+                      <span class="dot ${regel.gekozenNiveau === 3 ? "active" : ""}">3</span>
+                      <span class="dot ${regel.gekozenNiveau === 4 ? "active" : ""}">4</span>
+                      <span class="dot ${regel.gekozenNiveau === 5 ? "active" : ""}">5</span>
+                    </div>
+                    <p class="niveau-omschrijving">${escapeHtml(regel.niveauTekst)}</p>
+                  </article>
                 `
               )
               .join("");
 
+            const kleurKlasse = `kleur-${(index % 5) + 1}`;
             return `
-              <section class="leerlijn-blok">
-                <h2>${escapeHtml(leerlijnNaam)}</h2>
-                <table>
-                  <thead>
-                    <tr>
-                      <th>Oefening</th>
-                      <th>Behaald niveau</th>
-                      <th>Niveauomschrijving</th>
-                    </tr>
-                  </thead>
-                  <tbody>${rows}</tbody>
-                </table>
+              <section class="leerlijn-blok ${kleurKlasse}">
+                <h2 class="leerlijn-titel">${escapeHtml(leerlijnNaam)}</h2>
+                <div class="rapport-rows">${rows}</div>
               </section>
             `;
           })
@@ -445,20 +579,123 @@ function openLeerlingRapport(leerlingId) {
         <meta charset="utf-8" />
         <title>Rapport - ${escapeHtml(leerling.naam)}</title>
         <style>
-          body { font-family: Arial, sans-serif; margin: 24px; color: #111827; }
-          h1 { margin: 0 0 6px; font-size: 24px; }
-          .sub { margin: 0 0 18px; color: #4b5563; }
+          body { font-family: "Segoe UI", Arial, sans-serif; margin: 24px; color: #111827; background: #ffffff; }
+          h1 { margin: 0 0 6px; font-size: 26px; color: #be185d; }
+          .sub { margin: 0 0 18px; color: #4b5563; line-height: 1.45; }
           .toolbar { margin-bottom: 16px; }
           .toolbar button {
             border: 1px solid #d1d5db; background: #fff; border-radius: 8px;
             padding: 8px 14px; cursor: pointer;
           }
-          table { width: 100%; border-collapse: collapse; }
-          th, td { border: 1px solid #e5e7eb; padding: 10px; text-align: left; vertical-align: top; }
-          th { background: #f9fafb; }
-          .leerlijn-blok { margin-top: 18px; }
-          .leerlijn-blok h2 { margin: 0 0 8px; font-size: 18px; }
-          @media print { .toolbar { display: none; } body { margin: 0; } }
+          .leerlijn-blok { margin-top: 18px; border: 1px solid #f3e8ff; border-radius: 14px; overflow: hidden; }
+          .leerlijn-titel {
+            margin: 0;
+            padding: 10px 14px;
+            font-size: 18px;
+            color: #ffffff;
+            background: #db2777;
+          }
+          .rapport-rows {
+            padding: 10px 12px 4px;
+            display: grid;
+            gap: 10px;
+            background: #fff7fb;
+          }
+          .rapport-row {
+            border: 1px solid #fbcfe8;
+            background: #ffffff;
+            border-radius: 10px;
+            padding: 10px;
+          }
+          .rapport-row-head {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 10px;
+          }
+          .rapport-row-head h3 {
+            margin: 0;
+            font-size: 15px;
+            font-weight: 600;
+          }
+          .niveau-label {
+            border-radius: 999px;
+            background: #fdf2f8;
+            color: #9d174d;
+            border: 1px solid #f9a8d4;
+            padding: 2px 8px;
+            font-size: 12px;
+            white-space: nowrap;
+          }
+          .niveau-dots {
+            display: flex;
+            gap: 8px;
+            margin-top: 8px;
+            margin-bottom: 8px;
+          }
+          .dot {
+            width: 24px;
+            height: 24px;
+            border-radius: 999px;
+            border: 2px solid #f472b6;
+            color: #9d174d;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 11px;
+            font-weight: 700;
+            background: #ffffff;
+          }
+          .dot.active {
+            background: #ec4899;
+            color: #ffffff;
+            border-color: #db2777;
+          }
+          .niveau-omschrijving {
+            margin: 0;
+            color: #4b5563;
+            font-size: 13px;
+          }
+          .kleur-1 .leerlijn-titel { background: #db2777; }
+          .kleur-2 .leerlijn-titel { background: #a855f7; }
+          .kleur-3 .leerlijn-titel { background: #2563eb; }
+          .kleur-4 .leerlijn-titel { background: #0d9488; }
+          .kleur-5 .leerlijn-titel { background: #f97316; }
+          .conclusie-blok {
+            margin-top: 24px;
+            padding: 12px 14px;
+            background: #f9fafb;
+            border: 1px solid #e5e7eb;
+            border-radius: 10px;
+          }
+          .conclusie-blok h2 { margin: 0 0 8px; font-size: 18px; }
+          .conclusie-blok p { margin: 0 0 8px; }
+          .conclusie-blok p:last-child { margin-bottom: 0; }
+          @media print {
+            html, body, body * {
+              -webkit-print-color-adjust: exact !important;
+              print-color-adjust: exact !important;
+            }
+            .toolbar { display: none; }
+            body { margin: 0; }
+            .rapport-row { break-inside: avoid; }
+            .dot.active {
+              background: #ec4899 !important;
+              border-color: #be185d !important;
+              color: #ffffff !important;
+            }
+            /* Fallback voor printers/browsers die achtergrondkleuren negeren. */
+            .dot.active {
+              font-size: 0 !important;
+              position: relative;
+            }
+            .dot.active::after {
+              content: "●";
+              font-size: 14px;
+              line-height: 1;
+              color: #be185d !important;
+            }
+          }
         </style>
       </head>
       <body>
@@ -470,6 +707,7 @@ function openLeerlingRapport(leerlingId) {
           Datum: <strong>${escapeHtml(vandaag)}</strong>
         </p>
         ${rapportBodyHtml}
+        ${conclusieHtml}
       </body>
     </html>
   `);
